@@ -2,7 +2,7 @@ name: Fetch Stuttgart weather
 
 on:
   schedule:
-    - cron: "0 * * * *" # every hour, on the hour (UTC)
+    - cron: "24 * * * *" # every hour at minute 24 (UTC)
   workflow_dispatch:
   push:
     branches: [main, master]
