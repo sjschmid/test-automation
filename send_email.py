@@ -26,7 +26,11 @@ def main() -> int:
     msg["Subject"] = f"Weather in Stuttgart ({latest.stem.split('_', 1)[1]} UTC)"
     msg["From"] = user
     msg["To"] = TO
-    msg.set_content(latest.read_text(encoding="utf-8"))
+    body = latest.read_text(encoding="utf-8")
+    page_url = os.environ.get("PAGE_URL")
+    if page_url:
+        body += f"\nVisual report: {page_url}\n"
+    msg.set_content(body)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as smtp:
         smtp.login(user, password)

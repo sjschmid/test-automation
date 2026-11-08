@@ -9,10 +9,19 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: weather
+  cancel-in-progress: false
 
 jobs:
   weather:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     # Extra guard against loops (commits by GITHUB_TOKEN don't trigger workflows anyway)
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
@@ -21,15 +30,27 @@ jobs:
         with:
           python-version: "3.12"
       - run: python fetch_weather.py
-      - name: Commit weather file
+      - run: python build_page.py
+      - name: Commit weather file and page
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add weather/
+          git add weather/ index.html
           git commit -m "Add weather data for Stuttgart [skip ci]"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
           git push
+      - name: Prepare site
+        run: mkdir _site && cp index.html _site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - name: Deploy to GitHub Pages
+        id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true # keeps the email going if Pages isn't enabled yet
       - name: Email latest report
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          PAGE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
         run: python send_email.py
