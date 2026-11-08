@@ -1,0 +1,27 @@
+name: Fetch Stuttgart weather
+
+on:
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: write
+
+jobs:
+  weather:
+    runs-on: ubuntu-latest
+    # Extra guard against loops (commits by GITHUB_TOKEN don't trigger workflows anyway)
+    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python fetch_weather.py
+      - name: Commit weather file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add weather/
+          git commit -m "Add weather data for Stuttgart [skip ci]"
+          git push
