@@ -25,8 +25,8 @@ jobs:
     # Extra guard against loops (commits by GITHUB_TOKEN don't trigger workflows anyway)
     if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: python fetch_weather.py
@@ -41,12 +41,12 @@ jobs:
           git push
       - name: Prepare site
         run: mkdir _site && cp index.html _site/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
       - name: Deploy to GitHub Pages
         id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
         continue-on-error: true # keeps the email going if Pages isn't enabled yet
       - name: Email latest report
         env:
