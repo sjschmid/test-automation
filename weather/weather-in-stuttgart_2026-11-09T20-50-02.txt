@@ -1,0 +1,9 @@
+Weather in Stuttgart, Germany
+Fetched at (UTC): 2026-11-09T20:50:02+00:00
+Observation time (UTC): 2026-11-09T20:45
+Temperature: 8.5 °C
+Feels like: 7.2 °C
+Humidity: 90 %
+Precipitation: 0.0 mm
+Wind speed: 3.7 km/h
+WMO weather code: 3
