@@ -1,10 +1,10 @@
 name: Fetch Stuttgart weather
 
 on:
-  schedule:
-    - cron: "24 * * * *" # every hour at minute 24 (UTC)
   workflow_dispatch:
   push:
+    branches: [main, master]
+  pull_request:
     branches: [main, master]
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     # Extra guard against loops (commits by GITHUB_TOKEN don't trigger workflows anyway)
-    if: ${{ !contains(github.event.head_commit.message, '[skip ci]') }}
+    if: ${{ github.event_name != 'pull_request' && !contains(github.event.head_commit.message, '[skip ci]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -53,4 +53,22 @@ jobs:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
           PAGE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+        run: python send_email.py
+
+  # Pull requests: generate and email a report only. Nothing is committed or deployed.
+  pr-report:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python fetch_weather.py
+      - name: Email latest report
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python send_email.py
